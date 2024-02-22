@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"math/rand"
 	"time"
 
@@ -28,14 +27,13 @@ func NewPostgresConnection() (*PostgresStore, error) {
 	connectionString := "user=Man_user dbname=go-bank password=password sslmode=disable"
 
 	db, err := sql.Open("postgres", connectionString)
-	// defer os.Exit(1)
 
 	if err != nil {
-		fmt.Errorf("Error ouccers in db conection :%w", err)
+		return nil, err
 	}
 
 	if err = db.Ping(); err != nil {
-		fmt.Errorf("DB ping failed :%w", err)
+		return nil, err
 	}
 
 	return &PostgresStore{
@@ -56,7 +54,6 @@ func (s *PostgresStore) CreateAccountTable() error {
 	`
 	_, err := s.DB.Exec(query)
 	if err != nil {
-		log.Fatal(err, "error at create account")
 		return err
 	}
 	return nil
@@ -78,14 +75,13 @@ func (s *PostgresStore) CreateAccount(acc *models.Account) (*models.Account, err
 
 	resp, err := s.DB.Exec(query, acc.ID, acc.FirstName, acc.LastName, acc.AccNumber, acc.Balance)
 	if err != nil {
-		fmt.Errorf("error ouccers in create newaccount query :%v", err)
 		return nil, err
 	}
 	fmt.Println(resp)
 	return acc, nil
 }
 func (s *PostgresStore) GetAccountByID(id int) (*models.Account, error) {
-	query := "SELECT FROM * accounts WHERE id=$1"
+	query := "SELECT * FROM accounts WHERE id=$1"
 
 	resp := s.DB.QueryRow(query, id)
 	// if err != nil {
@@ -107,6 +103,7 @@ func (s *PostgresStore) GetAccountByID(id int) (*models.Account, error) {
 	return respAccount, nil
 }
 func (s *PostgresStore) DeleteAccount(id int) error {
+
 	query := "DELETE FROM accounts WHERE id=$1"
 
 	_ = s.DB.QueryRow(query, id)
@@ -137,7 +134,6 @@ func (s *PostgresStore) GetAccounts() ([]*models.Account, error) {
 
 	rows, err := s.DB.Query(query)
 	if err != nil {
-		fmt.Errorf("error ouccers in create newaccount query :%v", err)
 		return nil, err
 	}
 
